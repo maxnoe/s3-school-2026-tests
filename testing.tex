@@ -1,8 +1,8 @@
 \input{header.tex}
 \author[M. Linhoff]{Maximilian Linhoff}
 \title[Testing]{Unit Testing \& Debugging}
-\date[2025-01-16]{%
-  \Large S\textsuperscript{3} School – 2025-01-15
+\date[2026-01-16]{%
+  \Large S\textsuperscript{3} School – 2026-01-15
 }
 \institute[CTAO ERIC]{%
   Cherenkov Telescope Array Observatory ERIC\\[\baselineskip]%
@@ -113,7 +113,58 @@
 
     \item Docs: \url{https://pytest.org}
   \end{itemize}
+\end{frame}
 
+\begin{frame}[c, fragile]{Project Integration (without pixi)}
+  \begin{itemize}
+    \item Add pytest to the optional dependencies of your project:
+      \begin{code}[title=\texttt{pyproject.toml}]{toml}
+        [project.optional-dependencies]
+        test = [
+          "pytest",
+        ]
+      \end{code}
+    \item This enables adding an \textit{extra} \enquote{test} to the installation command:
+      \begin{code}{bash}
+        # For local development
+        $ pip install -e ".[test]"
+        # for users installing from PyPI
+        $ pip install "<your-library>[test]"
+      \end{code}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[c, fragile]{Project integration (with pixi)}
+  \begin{itemize}
+    \item Add a feature \enquote{test} that depends on pytest:
+      \begin{code}[title=\texttt{pyproject.toml}]{toml}
+        [tool.pixi.feature.test.dependencies]
+        pytest = "9.*"
+      \end{code}
+    \item Add an environment using this feature, e.g.:
+      \begin{code}[title=\texttt{pyproject.toml}]{toml}
+        [tool.pixi.environments]
+        default = { solve-group = "default" }
+        test = { features = ["test"], solve-group = "default" }
+      \end{code}
+    \item You can now run:
+      \begin{code}{bash}
+        $ pixi run --environment test pytest
+      \end{code}
+  \end{itemize}
+\end{frame}
+\begin{frame}[c, fragile]{Project integration (with pixi)}
+  \begin{itemize}
+    \item You could also add a task:
+      \begin{code}[title=\texttt{pyproject.toml}]{toml}
+        [tool.pixi.feature.test.tasks]
+        test = "pytest"
+      \end{code}
+      And then:
+      \begin{code}{bash}
+        $ pixi run test
+      \end{code}
+  \end{itemize}
 \end{frame}
 
 \begin{frame}[c, fragile]{First Unit Test}
@@ -175,7 +226,7 @@
     \item Testing logging \mintinline{python}+caplog+
     \item Monkeypatching \mintinline{python}+monkeypatch+
   \end{itemize}
-  More at \url{https://docs.pytest.org/en/6.2.x/fixture.html}
+  More at \url{https://docs.pytest.org/en/latest/fixture.html}
 \end{frame}
 
 \begin{frame}[c]{capsys – Fixture for testing the standard streams}
@@ -238,7 +289,7 @@
   Some tests can only be run under specific conditions
     \begin{itemize}
       \item Tests for features requiring optional dependencies
-        \inputcode[title={This test is skipped when numpy is not available}]<firstline=5, lastline=7>{python}{examples/test_skipped.py}{python}
+        \inputcode[title={This test is skipped when numpy is not available}]<firstline=5, lastline=7>{python}{examples/test_skipped.py}
       \item Tests for specific operating systems or versions
         \inputcode[title={This test is only executed on Windows}]<firstline=9>{python}{examples/test_skipped.py}
     \end{itemize}
@@ -250,6 +301,11 @@
     \item Planned but not yet implemented features
     \item Known but not yet fixed bugs
     \item These tests shouldn't make your whole test suite fail
+    \item Setting the strict option will result in failure if a test unexpectedly suceeds
+      \begin{code}[title=pyproject.toml]{toml}
+        [tool.pytest]
+        xfail_strict = true
+      \end{code}
   \end{itemize}
 
   \inputcode[title={This test is expected to fail}]{python}{examples/test_xfail.py}
@@ -316,7 +372,7 @@
   \begin{itemize}
     \item Define markers in \texttt{pyproject.toml}
       \begin{code}{toml}
-        [tool.pytest.ini_options]
+        [tool.pytest]
         markers = ["slow"]
       \end{code}
     \item Add the marker to a test
@@ -364,6 +420,7 @@
 
 \begin{frame}[c, fragile]{Create a coverage report}
   \begin{itemize}
+    \item Needs the \texttt{pytest-cov} plugin, add to your test dependencies next to \texttt{pytest}
     \item Print coverage after test suite
       \begin{code}{bash}
         $ pytest --cov=fibonacci
@@ -470,77 +527,5 @@
     \item This will find and execute code blocks in docstrings and documentation rst-files
     \item Checks the output is what is expected
   \end{itemize}
-\end{frame}
-
-\section{Continuous Integration}
-\headlineframe{Continuous Integration}
-\begin{frame}[c]{Continuous Integration}
-  \begin{itemize}
-    \item CI systems run the build, unit tests and code quality checks automatically
-    \item They should run for each push event / opened pull request
-    \item All architectures, operating systems and versions you support should be tested
-    \item Many tools provide detailed reporting that help with code reviews
-    \item You should require the passing of the CI system for pull requests
-    \item All providers also support encrypted secrets for confidential information\\
-      \begin{itemize}
-        \item Automatize upload of releases
-        \item Access private data needed for tests
-        \item ...
-      \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[c]{Providers}
-  \begin{description}[Github Actions]
-    \item[GitHub Actions] \url{https://docs.github.com/en/actions}
-      \begin{itemize}
-        \item Free for all public GitHub repositories
-        \item Linux, Mac and Windows builds
-        \item Support for custom runners that you can self-host
-        \item Recommended for projects on GitHub
-      \end{itemize}
-    \item[GitLab CI] \url{https://docs.gitlab.com/ee/ci/}
-      \begin{itemize}
-        \item 400 minutes of build time per month with gitLab.com Free
-        \item Support for custom runners that you can self-host
-        \item Also available for self-hosted GitLabs (you have to setup at least one runner)
-      \end{itemize}
-    \item[Jenkins] \url{https://www.jenkins.io/}
-      \begin{itemize}
-        \item Open-Source CI platform you can self-host
-      \end{itemize}
-  \end{description}
-
-  Many more, including \href{https://travis-ci.com/}{Travis CI}, \href{https://www.appveyor.com/}{AppVeyor}, \href{https://circleci.com/}{circle\textbf{ci}}, \href{https://azure.microsoft.com/de-de/services/devops/pipelines/}{Azure Pipelines}
-\end{frame}
-
-\begin{frame}[c]{Defining a CI Workflow}
-  \begin{itemize}
-    \item All of these providers use different configuration files to specify a workload
-    \item Despite these differences, the idea is always the same
-      \begin{itemize}
-        \item Define environments, operating systems, software versions
-        \item Get the code
-        \item Install dependencies
-        \item Compile / build / install the software
-        \item Run the tests
-        \item Upload results
-      \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[c]{A minimal github actions example}
-  \begin{itemize}
-    \item See the demo project at \url{https://github.com/maxnoe/pyfibonacci}
-  \end{itemize}
-\end{frame}
-
-
-\begin{frame}[c]{Some CI helpful Tools}
-  \begin{description}[\url{https://reviewnb.com/}]
-    \item[\url{https://codecov.io/}] Explore coverage reports and adds coverage checks to pull requests
-    \item[\url{https://reviewnb.com/}] Makes reviewing jupyter notebooks easier / possible
-    \item[\url{https://codacy.com/}] Static code analysis, e.\,g.\ style linting
-  \end{description}
 \end{frame}
 \end{document}
