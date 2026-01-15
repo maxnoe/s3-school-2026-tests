@@ -1,6 +1,6 @@
 \input{header.tex}
 \author[M. Linhoff]{Maximilian Linhoff}
-\title[Testing]{Unit Testing \& Debugging}
+\title[Testing \& Debugging]{Unit Testing \& Debugging}
 \date[2026-01-16]{%
   \Large S\textsuperscript{3} School – 2026-01-15
 }
@@ -385,18 +385,31 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}[c, fragile]{Debugging}
+\section{Debugging}
+\headlineframe{Debugging}
+
+\begin{frame}[c, fragile]{Debugging approaches}
+\end{frame}
+
+\begin{frame}[c, fragile]{Debugging as part of tests}
   \begin{itemize}
     \item Unit tests can be very useful for debugging
 
-    \item E.\,g.\ Write a new test that triggers the bug → investigate → make it pass
+    \item E.\,g.\ Write a new test that fails because of the bug → investigate → make it pass
 
     \item pytest allows you to jump into pdb when a test fails:
       \begin{code}{bash}
         $ pytest --pdb
       \end{code}
 
-    \item or any other debugger, e.\,g.\ ipython's:
+    \item You can also insert manual breakpoints
+      \begin{code}{python}
+        data = get_data()
+        breakpoint() # will jump into the debugger here so we can inspect data
+        some_function(data)
+      \end{code}
+
+    \item There are fancier debuggers than pdb, e.\,g.\ ipython's:
       \begin{code}{bash}
         $ pytest --pdb --pdbcls=IPython.terminal.debugger:TerminalPdb
       \end{code}
