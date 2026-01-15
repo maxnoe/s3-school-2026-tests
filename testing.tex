@@ -9,6 +9,9 @@
   \includegraphics[height=0.75cm]{./build/license.pdf}%
 }
 
+\newcommand\good{\textcolor{green!70!black}{\faPlus}}
+\newcommand\bad{\textcolor{red!80!black}{\faMinus}}
+
 \begin{document}
 \maketitle
 
@@ -388,7 +391,55 @@
 \section{Debugging}
 \headlineframe{Debugging}
 
-\begin{frame}[c, fragile]{Debugging approaches}
+\begin{frame}[c, fragile]{Debugging approaches: print}
+  Most common for beginners and even later: a generous seasoning of \texttt{print}s 
+  \begin{itemize}
+    \item[\good] Simple 
+    \item[\bad] You need to modify the code
+    \item[\bad] Hard to track which output comes from which part of the code\\
+      We've all written something like this at some point:
+        \begin{code}{python}
+          print("THE FUNCTION: inputs are:", a, b, c)
+          print("BEFORE foo")
+          print("AFTER foo")
+        \end{code}
+    \item[\bad] You need to remove all prints again when you are done
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[c, fragile]{Debugging approaches: logging}
+  The logging module is part of the standard library 
+  \begin{itemize}
+    \item[\good] Simple 
+    \item[\good] Useful also in production
+    \item[\good] Decide on the level of different messages
+    \item[\good] Configurable, what level you want to see from which logger
+    \item[\good] Includes information about file, function, line of code that created the message
+    \item[\bad] Code must be modified, messages pre-defined
+  \end{itemize}
+
+  \begin{code}{python}
+    import logging
+
+    log = logging.getLogger(__name__)
+
+    def model(a, b, c):
+        log.debug("Received values a=%.3f, b=%.3f, c=%.3f", a, b, c)
+        result = a * b + c 
+        log.info("model predicted: %.3f", result)
+        return result
+  \end{code}
+\end{frame}
+
+\begin{frame}[c, fragile]{Debugging approaches: running the debugger}
+  \begin{code}{bash}
+    $ python -m pdb script.py
+  \end{code}
+  \begin{itemize}
+    \item You will enter the debugger and can execute code statement by statement
+    \item You can also just run the code until it reaches a \texttt{breakpoint()} or an exception is raised
+    \item You can inspect code, local variables, etc.
+  \end{itemize}
 \end{frame}
 
 \begin{frame}[c, fragile]{Debugging as part of tests}
